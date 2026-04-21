@@ -1,0 +1,13 @@
+config.txt
+heightmap.csv
+heightmap.png
+plot.png
+
+/target
+src/__pycache__
+
+\\
+lib/\\
+src/\\
+
+.direnv
