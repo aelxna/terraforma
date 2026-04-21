@@ -199,6 +199,7 @@ def draw_line_plot(heightmap, length):
     fig = plt.figure(figsize=(8, 6), clear=True)
     ax = fig.add_subplot()
     ax.set_xlim(left=0, right=(length - 1))
+    ax.set_ylim(bottom=0.0, top=1.0)
 
     line = ax.plot(heightmap[0], color="black")
     plt.savefig("plot.png")
