@@ -4,17 +4,8 @@ use rand::rngs::StdRng;
 use rand::seq::SliceRandom;
 use std::f64::consts::SQRT_2;
 
-const GRADIENTS: [[f64; 2]; 8] = [
-    [1.0, 1.0],
-    [-1.0, 1.0],
-    [1.0, -1.0],
-    [-1.0, -1.0],
-    [SQRT_2, 0.0],
-    [-SQRT_2, 0.0],
-    [0.0, SQRT_2],
-    [0.0, -SQRT_2],
-];
-const BOUND: f64 = 0.7071067811865476;
+const GRADIENTS: [[f64; 2]; 4] = [[1.0, 1.0], [-1.0, 1.0], [1.0, -1.0], [-1.0, -1.0]];
+const BOUND: f64 = 1.0 / SQRT_2;
 
 #[derive(Debug)]
 pub struct Perlin {
@@ -39,10 +30,10 @@ impl Perlin {
         let [ux, uy] = unit;
 
         // pick gradient vectors for each corner
-        let gtl = GRADIENTS[self.P[self.P[ux] + uy] & 7];
-        let gtr = GRADIENTS[self.P[self.P[ux + 1] + uy] & 7];
-        let gbl = GRADIENTS[self.P[self.P[ux] + uy + 1] & 7];
-        let gbr = GRADIENTS[self.P[self.P[ux + 1] + uy + 1] & 7];
+        let gtl = GRADIENTS[self.P[self.P[ux] + uy] & 3];
+        let gtr = GRADIENTS[self.P[self.P[ux + 1] + uy] & 3];
+        let gbl = GRADIENTS[self.P[self.P[ux] + uy + 1] & 3];
+        let gbr = GRADIENTS[self.P[self.P[ux + 1] + uy + 1] & 3];
 
         // dot(gradient, distance)
         let dtl = dot2(gtl, [x, y]);
