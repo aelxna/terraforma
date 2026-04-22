@@ -17,8 +17,8 @@ fn apply_contrast(x: f64, c: f64) -> f64 {
 }
 
 #[inline]
-fn form_ridges(x: f64) -> f64 {
-    f64::powf(1.0 - x.abs(), 2.0)
+fn invert(x: f64) -> f64 {
+    1.0 - x.abs()
 }
 
 // for each octave, add noise of decreasing amplitude and increasing frequency
@@ -44,8 +44,11 @@ pub fn fbm(
     for _ in 0..octaves {
         if ridges == 0 {
             total += amp * p.noise(x * freq, y * freq);
+        } else if ridges == 1 {
+            // ridges should use signed noise
+            total += amp * p.snoise(x * freq, y * freq);
         } else {
-            // ridges and valleys should use signed noise
+            // valleys should use abs signed noise
             total += amp * p.snoise(x * freq, y * freq).abs();
         }
         amp_total += amp;
@@ -54,7 +57,7 @@ pub fn fbm(
     }
     total /= amp_total; // guarantee within the range 0-1
     if ridges == 1 {
-        total = form_ridges(total);
+        total = invert(total);
     }
     // c * total^exp + offset
     (apply_contrast(f64::powf(total, exp), contrast) + offset).clamp(0.0, 1.0)
