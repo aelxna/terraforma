@@ -19,10 +19,10 @@ pub fn fbm(
     period: f64,
     hurst: f64,
     lacunarity: f64,
+    octaves: usize,
     contrast: f64,
     exp: f64,
     offset: f64,
-    octaves: usize,
     ridges: usize,
     p: &Perlin,
 ) -> f64 {

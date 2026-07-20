@@ -38,9 +38,9 @@ pub struct Fbm {
 #[derive(Deserialize, Debug, Default)]
 pub struct Options {
     #[serde_inline_default(String::from(""))]
-    pub seed: String,
+    seed: String,
     #[serde_inline_default(String::from("perlin"))]
-    pub noise: String,
+    noise: String,
     #[serde_inline_default(0)]
     pub mode: usize,
     #[serde_inline_default(1.0)]
@@ -53,12 +53,13 @@ pub struct Options {
 
 impl Config {
     pub fn from(fd: &str) -> Result<(Self, u64, usize)> {
-        // defaults
+        // deserialize
         let config: Config = toml::from_str(
             &(fs::read_to_string(fd)
             .with_context(|| format!("Failed to read file {}", fd))?)
         ).unwrap();
 
+        // convert seed to u64 or generate
         let seed = if config.options.seed == "" {
             random_seed()
         } else {
@@ -66,6 +67,7 @@ impl Config {
                 .unwrap_or(hash_seed(&config.options.seed))
         };
 
+        // set noise flag based on string
         let noise = 0;
 
         Ok((config, seed, noise))
