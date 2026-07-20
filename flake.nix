@@ -16,12 +16,7 @@
         {
           devShells.default = mkShell {
             buildInputs = [
-              (python314.withPackages (ps: with ps; [
-                matplotlib
-                numpy
-                black
-              ]))
-              cargo
+              rust-analyzer
             ];
           };
         }

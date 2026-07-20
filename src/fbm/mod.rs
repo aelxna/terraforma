@@ -1,16 +1,6 @@
 use crate::perlin::Perlin;
 
 #[inline]
-pub fn lerp(a: f64, b: f64, x: f64) -> f64 {
-    a + x * (b - a)
-}
-
-#[inline]
-pub fn dot2(u: [f64; 2], v: [f64; 2]) -> f64 {
-    u[0] * v[0] + u[1] * v[1]
-}
-
-#[inline]
 fn apply_contrast(x: f64, c: f64) -> f64 {
     let centered = x - 0.5;
     (c * centered) + 0.5
@@ -33,7 +23,7 @@ pub fn fbm(
     exp: f64,
     offset: f64,
     octaves: usize,
-    ridges: i32,
+    ridges: usize,
     p: &Perlin,
 ) -> f64 {
     let mut total: f64 = 0.0;

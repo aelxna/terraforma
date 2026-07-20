@@ -1,0 +1,18 @@
+[image]
+length = 512
+width = 512
+
+[fbm]
+period = 128
+hurst = 0.5
+lacunarity = 2
+octaves = 8
+
+[options]
+seed = "meow"
+noise = "perlin"
+mode = 0
+contrast = 1
+exp = 1
+offset = 0
+
