@@ -1,4 +1,5 @@
 use crate::util::{dot2, lerp};
+use crate::noise::Noise;
 use rand::SeedableRng;
 use rand::rngs::StdRng;
 use rand::seq::SliceRandom;
@@ -44,9 +45,12 @@ impl Perlin {
         (dtl, dtr, dbl, dbr)
     }
 
+}
+
+impl Noise for Perlin {
     // returns a noise value between -1 and 1
     #[inline]
-    pub fn snoise(&self, x: f64, y: f64) -> f64 {
+    fn snoise(&self, x: f64, y: f64) -> f64 {
         // determine location within a box
         let trunc: [f64; 2] = [x - x.floor(), y - y.floor()];
         // determine in which box coordinates are located
@@ -61,7 +65,7 @@ impl Perlin {
 
     // normalize the output of snoise to be between 0 and 1
     #[inline]
-    pub fn noise(&self, x: f64, y: f64) -> f64 {
+    fn noise(&self, x: f64, y: f64) -> f64 {
         normalize(self.snoise(x, y))
     }
 }

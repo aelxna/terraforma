@@ -1,4 +1,4 @@
-use crate::perlin::Perlin;
+use crate::noise::Noise;
 
 #[inline]
 fn apply_contrast(x: f64, c: f64) -> f64 {
@@ -24,7 +24,7 @@ pub fn fbm(
     exp: f64,
     offset: f64,
     ridges: usize,
-    p: &Perlin,
+    n: &impl Noise,
 ) -> f64 {
     let mut total: f64 = 0.0;
     let mut amp_total: f64 = 0.0;
@@ -33,13 +33,13 @@ pub fn fbm(
     let gain: f64 = f64::powf(lacunarity, -hurst);
     for _ in 0..octaves {
         if ridges == 0 {
-            total += amp * p.noise(x * freq, y * freq);
+            total += amp * n.noise(x * freq, y * freq);
         } else if ridges == 1 {
             // ridges should use signed noise
-            total += amp * p.snoise(x * freq, y * freq);
+            total += amp * n.snoise(x * freq, y * freq);
         } else {
             // valleys should use abs signed noise
-            total += amp * p.snoise(x * freq, y * freq).abs();
+            total += amp * n.snoise(x * freq, y * freq).abs();
         }
         amp_total += amp;
         amp *= gain;

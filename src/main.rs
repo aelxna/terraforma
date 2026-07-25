@@ -1,9 +1,9 @@
-pub mod perlin;
 pub mod util;
 pub mod parse;
 pub mod fbm;
+pub mod noise;
 
-use crate::perlin::Perlin;
+use crate::noise::perlin::Perlin;
 use crate::fbm::fbm;
 use crate::parse::*;
 use anyhow::{Result, Context, bail};
