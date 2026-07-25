@@ -1,14 +1,4 @@
-use crate::perlin::Perlin;
-
-#[inline]
-pub fn lerp(a: f64, b: f64, x: f64) -> f64 {
-    a + x * (b - a)
-}
-
-#[inline]
-pub fn dot2(u: [f64; 2], v: [f64; 2]) -> f64 {
-    u[0] * v[0] + u[1] * v[1]
-}
+use crate::noise::Noise;
 
 #[inline]
 fn apply_contrast(x: f64, c: f64) -> f64 {
@@ -29,12 +19,12 @@ pub fn fbm(
     period: f64,
     hurst: f64,
     lacunarity: f64,
+    octaves: usize,
     contrast: f64,
     exp: f64,
     offset: f64,
-    octaves: usize,
-    ridges: i32,
-    p: &Perlin,
+    ridges: usize,
+    n: &dyn Noise,
 ) -> f64 {
     let mut total: f64 = 0.0;
     let mut amp_total: f64 = 0.0;
@@ -43,13 +33,13 @@ pub fn fbm(
     let gain: f64 = f64::powf(lacunarity, -hurst);
     for _ in 0..octaves {
         if ridges == 0 {
-            total += amp * p.noise(x * freq, y * freq);
+            total += amp * n.noise(x * freq, y * freq);
         } else if ridges == 1 {
             // ridges should use signed noise
-            total += amp * p.snoise(x * freq, y * freq);
+            total += amp * n.snoise(x * freq, y * freq);
         } else {
             // valleys should use abs signed noise
-            total += amp * p.snoise(x * freq, y * freq).abs();
+            total += amp * n.snoise(x * freq, y * freq).abs();
         }
         amp_total += amp;
         amp *= gain;

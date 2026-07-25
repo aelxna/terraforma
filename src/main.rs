@@ -1,89 +1,107 @@
-pub mod perlin;
-pub mod util;
+#![allow(non_snake_case)]
 
-use crate::perlin::Perlin;
-use crate::util::fbm;
-use anyhow::{Result, bail};
+pub mod util;
+pub mod parse;
+pub mod fbm;
+pub mod noise;
+
+use crate::noise::*;
+use crate::noise::perlin::Perlin;
+use crate::noise::value::ValueNoise;
+use crate::fbm::fbm;
+use crate::parse::*;
+use anyhow::{Result, Context, bail};
 use csv::Writer;
 use indicatif::ProgressBar;
 use rayon::prelude::*;
+use image::{ImageBuffer, Luma};
 use std::env;
 
-struct Cli {
-    length: usize,
-    width: usize,
-    period: f64,
-    hurst: f64,
-    lacunarity: f64,
-    octaves: usize,
-    contrast: f64,
-    exp: f64,
-    offset: f64,
-    ridges: i32,
-    seed: u64,
-}
+pub type Luma16 = Luma<u16>;
+pub type Gray16Image = ImageBuffer<Luma16, Vec<u16>>;
 
 fn main() -> Result<()> {
     let args: Vec<String> = env::args().collect();
-    if args.len() < 12 {
+    if args.len() < 2 {
         bail!("Missing command line arguments");
     }
-    let cli: Cli = Cli {
-        length: args[1].parse::<usize>()?,
-        width: args[2].parse::<usize>()?,
-        period: args[3].parse::<f64>()?,
-        hurst: args[4].parse::<f64>()?,
-        lacunarity: args[5].parse::<f64>()?,
-        octaves: args[6].parse::<usize>()?,
-        contrast: args[7].parse::<f64>()?,
-        exp: args[8].parse::<f64>()?,
-        offset: args[9].parse::<f64>()?,
-        ridges: args[10].parse::<i32>()?,
-        seed: args[11].parse::<u64>()?,
+
+    let (config, seed) = Config::from(&args[1]).with_context(|| "Failed to generate config")?;
+
+    let n: Box<dyn Noise + Sync> = match config.options.noise.as_str() {
+        "perlin" => Box::new(Perlin::new(seed)),
+        "value" => Box::new(ValueNoise::new(seed)),
+        _ => Box::new(Perlin::new(seed))
     };
 
-    let progress = ProgressBar::new((cli.length * cli.width) as u64);
-    let p: Perlin = Perlin::new(cli.seed);
+    // println!("Building heightmap with seed {}...", seed);
+    // let progress = ProgressBar::new((config.image.length * config.image.width) as u64);
+    // let heightmap: Vec<f64> = (0..config.image.width)
+    //     .into_par_iter()
+    //     .flat_map(|i| (0..config.image.length).into_par_iter().map(move |j| (i, j)))
+    //     .map(|(i, j)| {
+    //         let val: f64 = fbm(
+    //             i as f64,
+    //             j as f64,
+    //             config.fbm.period,
+    //             config.fbm.hurst,
+    //             config.fbm.lacunarity,
+    //             config.fbm.octaves,
+    //             config.options.contrast,
+    //             config.options.exp,
+    //             config.options.offset,
+    //             config.options.mode,
+    //             &p,
+    //         );
+    //         progress.inc(1);
+    //         val
+    //     })
+    //     .collect();
+    // progress.finish();
+    // println!("Done!\n");
 
-    println!("Building heightmap with seed {}...", cli.seed);
-    let heightmap: Vec<f64> = (0..cli.width)
-        .into_par_iter()
-        .flat_map(|i| (0..cli.length).into_par_iter().map(move |j| (i, j)))
-        .map(|(i, j)| {
+    println!("Building heightmap with seed {}...", seed);
+    let progress = ProgressBar::new((config.image.length * config.image.width) as u64);
+    let heightmap = Gray16Image::from_par_fn(
+        config.image.length as u32, 
+        config.image.width as u32, 
+        |i, j| {
             let val: f64 = fbm(
                 i as f64,
                 j as f64,
-                cli.period,
-                cli.hurst,
-                cli.lacunarity,
-                cli.contrast,
-                cli.exp,
-                cli.offset,
-                cli.octaves,
-                cli.ridges,
-                &p,
+                config.fbm.period,
+                config.fbm.hurst,
+                config.fbm.lacunarity,
+                config.fbm.octaves,
+                config.options.contrast,
+                config.options.exp,
+                config.options.offset,
+                config.options.mode,
+                &*n,
             );
             progress.inc(1);
-            val
-        })
-        .collect();
+            let val_u16: u16 = (val * 65536.0) as u16;
+            Luma16::from([val_u16])
+        });
     progress.finish();
-    println!("Done!\n");
-
-    let progress = ProgressBar::new((cli.length * cli.width) as u64);
-
-    println!("Saving to heightmap.csv...");
-    let mut writer = Writer::from_path("heightmap.csv")?;
-    for row in 0..cli.width {
-        let row = &heightmap[cli.length * row..][..cli.length];
-        for cell in row {
-            writer.write_field(format!("{}", cell))?;
-            progress.inc(1);
-        }
-        writer.write_record(None::<&[u8]>)?;
-    }
-    progress.finish();
+    println!("Saving image...");
+    heightmap.save("heightmap.png").with_context(|| "Failed to save output image")?;
     println!("Done!");
+
+    // let progress = ProgressBar::new((config.image.length * config.image.width) as u64);
+    //
+    // println!("Saving to heightmap.csv...");
+    // let mut writer = Writer::from_path("heightmap.csv")?;
+    // for row in 0..config.image.width {
+    //     let row = &heightmap[config.image.length * row..][..config.image.length];
+    //     for cell in row {
+    //         writer.write_field(format!("{}", cell))?;
+    //         progress.inc(1);
+    //     }
+    //     writer.write_record(None::<&[u8]>)?;
+    // }
+    // progress.finish();
+    // println!("Done!");
 
     Ok(())
 }
