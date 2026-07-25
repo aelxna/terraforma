@@ -1,9 +1,13 @@
+#![allow(non_snake_case)]
+
 pub mod util;
 pub mod parse;
 pub mod fbm;
 pub mod noise;
 
+use crate::noise::*;
 use crate::noise::perlin::Perlin;
+use crate::noise::value::ValueNoise;
 use crate::fbm::fbm;
 use crate::parse::*;
 use anyhow::{Result, Context, bail};
@@ -22,9 +26,13 @@ fn main() -> Result<()> {
         bail!("Missing command line arguments");
     }
 
-    let (config, seed, noise) = Config::from(&args[1]).with_context(|| "Failed to generate config")?;
+    let (config, seed) = Config::from(&args[1]).with_context(|| "Failed to generate config")?;
 
-    let p: Perlin = Perlin::new(seed); 
+    let n: Box<dyn Noise + Sync> = match config.options.noise.as_str() {
+        "perlin" => Box::new(Perlin::new(seed)),
+        "value" => Box::new(ValueNoise::new(seed)),
+        _ => Box::new(Perlin::new(seed))
+    };
 
     // println!("Building heightmap with seed {}...", seed);
     // let progress = ProgressBar::new((config.image.length * config.image.width) as u64);
@@ -69,7 +77,7 @@ fn main() -> Result<()> {
                 config.options.exp,
                 config.options.offset,
                 config.options.mode,
-                &p,
+                &*n,
             );
             progress.inc(1);
             let val_u16: u16 = (val * 65536.0) as u16;

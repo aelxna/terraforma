@@ -24,7 +24,7 @@ pub fn fbm(
     exp: f64,
     offset: f64,
     ridges: usize,
-    n: &impl Noise,
+    n: &dyn Noise,
 ) -> f64 {
     let mut total: f64 = 0.0;
     let mut amp_total: f64 = 0.0;

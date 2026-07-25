@@ -1,5 +1,5 @@
-use crate::util::{dot2, lerp};
-use crate::noise::Noise;
+use crate::util::dot2;
+use crate::noise::*;
 use rand::SeedableRng;
 use rand::rngs::StdRng;
 use rand::seq::SliceRandom;
@@ -70,19 +70,6 @@ impl Noise for Perlin {
     }
 }
 
-// replace linear scale with a smoother function
-#[inline]
-fn fade(t: f64) -> f64 {
-    ((6.0 * t - 15.0) * t + 10.0) * t * t * t
-}
-
-#[inline]
-fn bilinear_interpolate(dtl: f64, dtr: f64, dbl: f64, dbr: f64, faded: [f64; 2]) -> f64 {
-    let x1 = lerp(dtl, dtr, faded[0]);
-    let x2 = lerp(dbl, dbr, faded[0]);
-
-    lerp(x1, x2, faded[1])
-}
 
 #[inline]
 fn normalize(x: f64) -> f64 {

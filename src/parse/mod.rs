@@ -40,7 +40,7 @@ pub struct Options {
     #[serde_inline_default(String::from(""))]
     seed: String,
     #[serde_inline_default(String::from("perlin"))]
-    noise: String,
+    pub noise: String,
     #[serde_inline_default(0)]
     pub mode: usize,
     #[serde_inline_default(1.0)]
@@ -52,7 +52,7 @@ pub struct Options {
 }
 
 impl Config {
-    pub fn from(fd: &str) -> Result<(Self, u64, usize)> {
+    pub fn from(fd: &str) -> Result<(Self, u64)> {
         // deserialize
         let config: Config = toml::from_str(
             &(fs::read_to_string(fd)
@@ -67,9 +67,6 @@ impl Config {
                 .unwrap_or(hash_seed(&config.options.seed))
         };
 
-        // set noise flag based on string
-        let noise = 0;
-
-        Ok((config, seed, noise))
+        Ok((config, seed))
     }
 }
