@@ -13,7 +13,7 @@ fn invert(x: f64) -> f64 {
 
 // for each octave, add noise of decreasing amplitude and increasing frequency
 #[inline]
-pub fn fbm(
+pub fn fbm<N: Noise>(
     x: f64,
     y: f64,
     period: f64,
@@ -24,7 +24,7 @@ pub fn fbm(
     exp: f64,
     offset: f64,
     ridges: usize,
-    n: &dyn Noise,
+    n: &N,
 ) -> f64 {
     let mut total: f64 = 0.0;
     let mut amp_total: f64 = 0.0;
@@ -49,6 +49,12 @@ pub fn fbm(
     if ridges == 1 {
         total = invert(total);
     }
+    // add cases for common exp values
+    let powered = match exp {
+        1.0 => total,
+        2.0 => total * total,
+        _ => f64::powf(total, exp)
+    };
     // c * total^exp + offset
-    (apply_contrast(f64::powf(total, exp), contrast) + offset).clamp(0.0, 1.0)
+    (apply_contrast(powered, contrast) + offset).clamp(0.0, 1.0)
 }
