@@ -26,8 +26,8 @@ impl Perlin {
 
     // determine gradient vectors and find dot product between distance and gradient
     #[inline]
-    fn grad(&self, trunc: [f64; 2], unit: [usize; 2]) -> (f64, f64, f64, f64) {
-        let [x, y] = trunc;
+    fn grad(&self, internal: [f64; 2], unit: [usize; 2]) -> (f64, f64, f64, f64) {
+        let [x, y] = internal;
         let [ux, uy] = unit;
 
         // pick gradient vectors for each corner
@@ -52,13 +52,13 @@ impl Noise for Perlin {
     #[inline]
     fn snoise(&self, x: f64, y: f64) -> f64 {
         // determine location within a box
-        let trunc: [f64; 2] = [x - x.floor(), y - y.floor()];
+        let internal: [f64; 2] = [x - x.floor(), y - y.floor()];
         // determine in which box coordinates are located
         let unit: [usize; 2] = [(x as usize) & 255, (y as usize) & 255];
-        // apply fade function to truncated coordinates
-        let faded: [f64; 2] = trunc.map(|i| fade(i));
+        // apply fade function to internal coordinates
+        let faded: [f64; 2] = internal.map(|i| fade(i));
 
-        let (dtl, dtr, dbl, dbr) = self.grad(trunc, unit);
+        let (dtl, dtr, dbl, dbr) = self.grad(internal, unit);
 
         bilinear_interpolate(dtl, dtr, dbl, dbr, faded) / BOUND
     }

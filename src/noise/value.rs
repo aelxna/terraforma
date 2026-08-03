@@ -46,13 +46,13 @@ impl Noise for ValueNoise {
     #[inline]
     fn noise(&self, x: f64, y: f64) -> f64 {
         // determine location within a box
-        let trunc: [f64; 2] = [x - x.floor(), y - y.floor()];
+        let internal: [f64; 2] = [x - x.floor(), y - y.floor()];
         // determine in which box coordinates are located
         let unit: [usize; 2] = [(x as usize) & 255, (y as usize) & 255];
 
         let (tl, tr, bl, br) = self.get_values(unit);
 
-        let faded: [f64; 2] = trunc.map(|i| fade(i));
+        let faded: [f64; 2] = internal.map(|i| fade(i));
         bilinear_interpolate(tl, tr, bl, br, faded)
     }
 
